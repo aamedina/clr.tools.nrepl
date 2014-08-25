@@ -3,23 +3,25 @@
      clojure.tools.nrepl.server
   (:require [clojure.tools.nrepl :as repl]
   			[clojure.tools.nrepl.debug :as debug]
-            (clojure.tools.nrepl [ack :as ack]
-                                 [transport :as t]
-                                 [middleware :as middleware])
-            (clojure.tools.nrepl.middleware interruptible-eval
-                                            pr-values
-                                            session
-                                            load-file))
-  (:use [clojure.tools.nrepl.misc :only (returning response-for log)])
-  (:import (System.Net.Sockets Socket SocketType ProtocolType SocketShutdown)        ;DM: (java.net Socket ServerSocket InetSocketAddress)
-            (System.Net IPAddress IPEndPoint)))   
+        [clojure.tools.nrepl.ack :as ack]
+        [clojure.tools.nrepl.transport :as t]
+        [clojure.tools.nrepl.middleware :as middleware]
+        [clojure.tools.nrepl.middleware
+         interruptible-eval
+         pr-values
+         session
+         load-file
+         complete]
+        [clojure.tools.nrepl.misc :refer [returning response-for log]])
+  (:import (System.Net.Sockets Socket SocketType ProtocolType SocketShutdown)
+           (System.Net IPAddress IPEndPoint)))
 
 (defn handle*
   [msg handler transport]
   (try
     #_(debug/prn-thread "handle* " msg ", transport " (.GetHashCode transport)) ;DEBUG
     (handler (assoc msg :transport transport))
-    (catch Exception t                                                       ;DM: Throwable
+    (catch Exception t                        
       (log t "Unhandled REPL handler exception processing message" msg))))
 
 (defn handle
@@ -89,7 +91,8 @@
    #'clojure.tools.nrepl.middleware.interruptible-eval/interruptible-eval
    #'clojure.tools.nrepl.middleware.load-file/wrap-load-file
    #'clojure.tools.nrepl.middleware.session/add-stdin
-   #'clojure.tools.nrepl.middleware.session/session])
+   #'clojure.tools.nrepl.middleware.session/session
+   #'clojure.tools.nrepl.middleware.complete/wrap-complete])
 
 (defn default-handler
   "A default handler supporting interruptible evaluation, stdin, sessions, and
@@ -99,8 +102,9 @@
    should all be values (usually vars) that have an nREPL middleware descriptor
    in their metadata (see clojure.tools.nrepl.middleware/set-descriptor!)."
   [& additional-middlewares]
-  (let [stack (middleware/linearize-middleware-stack (concat default-middlewares
-                                                             additional-middlewares))]
+  (let [stack (middleware/linearize-middleware-stack
+               (concat default-middlewares
+                       additional-middlewares))]
     ((apply comp (reverse stack)) unknown-op)))
 
 ;; TODO

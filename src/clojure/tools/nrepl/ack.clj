@@ -1,16 +1,13 @@
-
 (ns clojure.tools.nrepl.ack
   (:require [clojure.tools.nrepl :as repl]
             [clojure.tools.nrepl.transport :as t])
-  (:import (clojure.lang Future FutureTimeoutException)))                                                  ;DM: (java.util.concurrent Future TimeUnit TimeoutException)
+  (:import (clojure.lang Future FutureTimeoutException)))
 
-; could be a lot fancier, but it'll do for now
 (def ^{:private true} ack-port-promise (atom nil))
 
 (defn reset-ack-port!
   []
   (reset! ack-port-promise (promise))
-  ; save people the misery of ever trying to deref the empty promise in their REPL
   nil)
 
 (defn wait-for-ack
@@ -28,9 +25,8 @@
   [timeout]
   (let [^Future f (future @@ack-port-promise)]
     (try
-      ; no deref with timeout in 1.2
-      (.get f timeout)                                                        ;DM: remove TimeUnit/MILLISECONDS
-      (catch FutureTimeoutException e))))                                     ;DM: TimeoutException
+      (.get f timeout)         
+      (catch FutureTimeoutException e))))
 
 (defn handle-ack
   [h]

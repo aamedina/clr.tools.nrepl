@@ -28,7 +28,10 @@
 (deftype FnTransport [recv-fn send-fn close]
   Transport
   ;; TODO this keywordization/stringification has no business being in FnTransport
-  (send [this msg] #_(debug/prn-thread "FnTransport:: send " msg) (-> msg clojure.walk/stringify-keys send-fn) this)
+  (send [this msg]
+    (debug/prn-thread "FnTransport:: send " msg)
+    (-> msg clojure.walk/stringify-keys send-fn)
+    this)
   (recv [this] #_(debug/prn-thread "FnTransprot:: recv ") (.recv this Int32/MaxValue))                                      ;DM: Long/MAX_VALUE
   (recv [this timeout] #_(debug/prn-thread "FnTransport:: recv [" timeout "]") (clojure.walk/keywordize-keys (recv-fn timeout)))
   System.IDisposable                                                             ;DM: java.io.Closeable

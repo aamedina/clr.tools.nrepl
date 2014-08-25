@@ -57,12 +57,12 @@ be loaded."} file-contents (atom {}))
    In such cases, see `load-large-file-code'`."
   [file file-path file-name]
   (apply format
-    "(clojure.lang.Compiler/load (System.IO.StringReader. %s) %s %s)"                          ;DM: java.io.StringReader.
-    (map (fn [item]
-           (binding [*print-length* nil
-                     *print-level* nil]
-             (pr-str item)))
-         [file file-path file-name])))
+         "(clojure.lang.Compiler/load (System.IO.StringReader. %s) %s %s)"
+         (map (fn [item]
+                (binding [*print-length* nil
+                          *print-level* nil]
+                  (pr-str item)))
+              [file file-path file-name])))
 
 (defn wrap-load-file
   "Middleware that evaluates a file's contents, as per load-file,
@@ -77,10 +77,7 @@ be loaded."} file-contents (atom {}))
       (h msg)
       (h (assoc msg
            :op "eval"
-           :code ((if (thread-bound? #'load-file-code)
-                    load-file-code
-                    load-large-file-code)
-                   file file-path file-name))))))
+           :code (str "(load-file \"" file-path "\")"))))))
 
 (set-descriptor! #'wrap-load-file
   {:requires #{}
@@ -91,7 +88,7 @@ be loaded."} file-contents (atom {}))
               :optional {"file-path" "Source-path-relative path of the source file, e.g. clojure/java/io.clj"
                          "file-name" "Name of source file, e.g. io.clj"}
               :returns (-> (meta #'eval/interruptible-eval)
-                         ::middleware/descriptor
-                         :handles
-                         (get "eval")
-                         :returns)}}})
+                           ::middleware/descriptor
+                           :handles
+                           (get "eval")
+                           :returns)}}})

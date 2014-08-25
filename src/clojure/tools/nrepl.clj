@@ -11,11 +11,11 @@
   clojure.tools.nrepl
   (:require [clojure.tools.nrepl.transport :as transport]
             clojure.set
-			[clojure.tools.nrepl.debug :as debug]
-            [clojure.clr.io :as io])                               ;DM: [clojure.java.io :as io])
+            [clojure.tools.nrepl.debug :as debug]
+            [clojure.clr.io :as io])
   (:use [clojure.tools.nrepl.misc :only (uuid)])
-  (:import clojure.lang.LineNumberingTextReader                    ;DM: LineNumberingPushbackReader
-           (System.IO TextReader Path)))                           ;DM: (java.io Reader StringReader Writer PrintWriter)))
+  (:import clojure.lang.LineNumberingTextReader 
+           (System.IO TextReader Path)))
 
 (defn response-seq
   "Returns a lazy seq of messages received via the given Transport.
@@ -23,14 +23,15 @@
    The seq will end only when the underlying Transport is closed (i.e.
    returns nil from `recv`) or if a message takes longer than `timeout`
    millis to arrive."
-  ([transport] (response-seq transport Int32/MaxValue))                        ;DM: Long/MAX_VALUE
+  ([transport] (response-seq transport Int32/MaxValue))
   ([transport timeout]
-    (take-while identity (repeatedly #(transport/recv transport timeout)))))
+     (take-while identity (repeatedly #(transport/recv transport timeout)))))
 
 (def ^:private sw (doto (System.Diagnostics.Stopwatch.) (.Start)))	
 	
 (defn client
-  "Returns a fn of zero and one argument, both of which return the current head of a single
+  "Returns a fn of zero and one argument, both of which return the current head
+   of a single
    response-seq being read off of the given client-side transport.  The one-arg arity will
    send a given message on the transport before returning the seq.
 
@@ -40,12 +41,11 @@
   (let [latest-head (atom nil)
         update #(swap! latest-head
                        (fn [[timestamp seq :as head] now]
-					     #_(debug/prn-thread "client::update ") ;DEBUG
+                         #_(debug/prn-thread "client::update ")
                          (if (< timestamp now)
                            [now %]
                            head))
-                       ; nanoTime appropriate here; looking to maintain ordering, not actual timestamps
-                       (.ElapsedTicks sw))                                      ;DM: (System/nanoTime))
+                       (.ElapsedTicks sw))                                
         tracking-seq (fn tracking-seq [responses]
 		               #_(debug/prn-thread "client:: tracking seq") ;DEBUG
                        (lazy-seq
@@ -203,7 +203,7 @@
            (when (pos? port)
              {:port port}))))
 
-(def ^{:private false} uri-scheme #(-> (to-uri %) .Scheme .ToLower))          ;DM: .getScheme  .toLowerCase
+(def ^{:private false} uri-scheme #(-> (to-uri %) .Scheme .ToLower))
 
 (defmulti url-connect
   "Connects to an nREPL endpoint identified by the given URL/URI.  Valid
@@ -246,10 +246,10 @@
 					(System.Reflection.Assembly/GetAssembly) 
 					(.GetManifestResourceStream (.Replace "/clojure/tools/nrepl/version.txt" \/ Path/DirectorySeparatorChar)))
 					(catch NotSupportedException e nil))]        
-    (with-open [^TextReader reader (io/text-reader in)]                                                   ;DM: ^java.io.BufferedReader  io/reader
-      (let [version-string (-> reader .ReadLine .Trim)]                                                   ;DM: .readLine .trim
+    (with-open [^TextReader reader (io/text-reader in)]                         
+      (let [version-string (-> reader .ReadLine .Trim)]
         (assoc (->> version-string 
-                 (re-find #"(\d+)\.(\d+)\.(\d+)-?(.*)")
-                 rest
-                 (zipmap [:major :minor :incremental :qualifier]))
-               :version-string version-string)))))
+                    (re-find #"(\d+)\.(\d+)\.(\d+)-?(.*)")
+                    rest
+                    (zipmap [:major :minor :incremental :qualifier]))
+          :version-string version-string)))))
