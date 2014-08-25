@@ -20,7 +20,8 @@
   `scope/var`."
   [^String s ns]
   (let [[scope-name sym] (if (> (.IndexOf s "/") -1)
-                           (.Split s "/") ())
+                           (.Split s (char-array "/"))
+                           ())
         scope (when scope-name
                 (or (find-ns (symbol scope-name))
                     ((ns-aliases ns) (symbol scope-name))))

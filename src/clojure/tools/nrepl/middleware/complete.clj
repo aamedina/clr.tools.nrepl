@@ -18,11 +18,19 @@
   [{:keys [symbol ns context] :as msg}]
   (let [ns (when ns (clojure.core/symbol ns))
         prefix (str symbol)]
-    (ns-maps/candidates prefix ns context)))
+    (->> (for [candidates [ns-maps/candidates]]
+           (candidates prefix ns context))
+         flatten
+         (sort-by count))))
 
 (defn completion-doc
   [{:keys [symbol ns] :as msg}]
-  )
+  (let [symbol-str (str symbol)
+        ns (symbol ns)]
+    (->> (for [doc []]
+           (doc symbol-str ns))
+         (interpose "\n\n")
+         (s/join))))
 
 (defn complete-reply
   [{:keys [transport] :as msg}]
