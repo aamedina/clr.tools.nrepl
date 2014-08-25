@@ -1,6 +1,6 @@
-(ns clr.tools.nrepl.middleware.complete.ns-mappings
+(ns clojure.tools.nrepl.middleware.complete.ns-mappings
   "Completion for vars and classes in the current namespace."
-  (:require [clr.tools.nrepl.middleware.complete.utils
+  (:require [clojure.tools.nrepl.middleware.complete.utils
              :refer [parts-match? split]])
   (:import System.IO.StringWriter))
 

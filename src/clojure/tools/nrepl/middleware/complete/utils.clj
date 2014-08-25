@@ -1,4 +1,4 @@
-(ns clr.tools.nrepl.middleware.complete.utils
+(ns clojure.tools.nrepl.middleware.complete.utils
   "Functions and utilities for source implementations."
   (:require clojure.main
             [clojure.string :as string]))

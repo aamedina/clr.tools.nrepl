@@ -4,7 +4,7 @@
             [clojure.tools.nrepl.debug :as debug]
             [clojure.tools.nrepl.misc :refer [response-for]]
             [clojure.string :as s]
-            [clr.tools.nrepl.middleware.complete.ns-mappings :as ns-maps]
+            [clojure.tools.nrepl.middleware.complete.ns-mappings :as ns-maps]
             clojure.main)
   (:use [clojure.tools.nrepl.misc :only (response-for returning)]
         [clojure.tools.nrepl.middleware :only (set-descriptor!)])
