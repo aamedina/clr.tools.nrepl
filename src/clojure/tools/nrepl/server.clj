@@ -11,7 +11,8 @@
          pr-values
          session
          load-file
-         complete]
+         complete
+         info]
         [clojure.tools.nrepl.misc :refer [returning response-for log]])
   (:import (System.Net.Sockets Socket SocketType ProtocolType SocketShutdown)
            (System.Net IPAddress IPEndPoint)))
@@ -92,7 +93,8 @@
    #'clojure.tools.nrepl.middleware.load-file/wrap-load-file
    #'clojure.tools.nrepl.middleware.session/add-stdin
    #'clojure.tools.nrepl.middleware.session/session
-   #'clojure.tools.nrepl.middleware.complete/wrap-complete])
+   #'clojure.tools.nrepl.middleware.complete/wrap-complete
+   #'clojure.tools.nrepl.middleware.info/wrap-info])
 
 (defn default-handler
   "A default handler supporting interruptible evaluation, stdin, sessions, and

@@ -77,7 +77,8 @@ be loaded."} file-contents (atom {}))
       (h msg)
       (h (assoc msg
            :op "eval"
-           :code (str "(load-file \"" file-path "\")"))))))
+           :code (when file-path
+                   (str "(load-file \"" file-path "\")")))))))
 
 (set-descriptor! #'wrap-load-file
   {:requires #{}

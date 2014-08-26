@@ -1,7 +1,8 @@
 (ns clojure.tools.nrepl.middleware.complete.utils
   "Functions and utilities for source implementations."
   (:require clojure.main
-            [clojure.string :as string]))
+            [clojure.string :as string])
+  (:import System.IO.FileInfo))
 
 (defn split
   "Like clojure.string/split, but adds an empty string at the end if
@@ -46,3 +47,52 @@
   fully qualified name or an alias in the given namespace."
   [sym ns]
   (or (find-ns sym) ((ns-aliases ns) sym)))
+
+(defn deep-merge
+  "Merge maps recursively. When vals are not maps, last value wins."
+  [& xs]
+  (let [f (fn f [& xs]
+            (if (every? map? xs)
+              (apply merge-with f xs)
+              (last xs)))]
+    (apply f (filter identity xs))))
+
+(defn as-sym
+  [x]
+  (if x (symbol x)))
+
+(defmulti transform-value "Transform a value for output" type)
+
+(defmethod transform-value :default [v]
+  (if (number? v)
+    v
+    (str v)))
+
+(defmethod transform-value nil [v] nil)
+
+(defmethod transform-value System.IO.FileInfo
+  [v]
+  (Path/GetFullPath (str v)))
+
+(defmethod transform-value clojure.lang.Sequential
+  [v]
+  (list* (map transform-value v)))
+
+(defmethod transform-value clojure.lang.Symbol
+  [v]
+  (let [[the-ns the-name] [(namespace v) (name v)]]
+    (or (and the-ns (str the-ns "/" the-name))
+        the-name)))
+
+(defmethod transform-value clojure.lang.Keyword
+  [v]
+  (transform-value (name v)))
+
+(defmethod transform-value clojure.lang.Associative
+  [m]
+  (->> (for [[k v] m]
+         [(str (transform-value k)) (transform-value v)])
+       (into {})))
+
+;; handles vectors
+(prefer-method transform-value clojure.lang.Sequential clojure.lang.Associative)
