@@ -58,12 +58,21 @@ be loaded."} file-contents (atom {}))
   [file file-path file-name]
   (Console/WriteLine "LOADFILE: {0} {1} {2}" file file-path file-name)
   (apply format
+<<<<<<< HEAD
+         "(clojure.lang.Compiler/load (System.IO.StringReader. %s) %s %s)"
+         (map (fn [item]
+                (binding [*print-length* nil
+                          *print-level* nil]
+                  (pr-str item)))
+              [file file-path file-name])))
+=======
     "(clojure.lang.Compiler/load (System.IO.StringReader. %s) nil %s %s)"                          ;DM: java.io.StringReader.  Add nil (load needs four args)
     (map (fn [item]
            (binding [*print-length* nil
                      *print-level* nil]
              (pr-str item)))
          [file file-path file-name])))
+>>>>>>> c91c0726b9f00ed22860858a90df65c7d33239c6
 
 (defn wrap-load-file
   "Middleware that evaluates a file's contents, as per load-file,

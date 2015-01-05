@@ -32,6 +32,16 @@
   [m]
   (into {} (filter (fn [[_ v]] (or (number? v) (string? v))) m)))
 
+(defn- java-version
+  []
+  (let [version-string (.ToString Environment/Version)                                    ;;; (System/getProperty "java.version")
+        version-seq (re-seq #"\d+" version-string)
+        ;; add detailed version info only if we found four numbers in the version string
+        version-map (if (<= 3 (count version-seq))
+                      (zipmap [:major :minor :incremental :update] version-seq)
+                      {})]
+    (assoc version-map :version-string version-string)))
+
 (defn wrap-describe
   [h]
   (fn [{:keys [op descriptors verbose? transport] :as msg}]
@@ -41,7 +51,9 @@
                                           descriptors
                                           (into {} (map #(vector (key %) {}) descriptors)))
                                    :versions {:nrepl (safe-version clojure.tools.nrepl/version)
-                                              :clojure (safe-version *clojure-version*)}
+                                              :clojure (safe-version
+                                                        (assoc *clojure-version* :version-string (clojure-version)))
+                                              :java {:version-string (safe-version (java-version))}}
                                    :status :done}))
       (h msg))))
 
@@ -92,7 +104,8 @@
                               (filter var?)))]
     (doseq [m (remove descriptor middlewares)]
       (binding [*out* *err*]
-        (printf "[WARNING] No nREPL middleware descriptor in metadata of %s, see clojure.tools.middleware/set-descriptor!" m)))
+        (printf "[WARNING] No nREPL middleware descriptor in metadata of %s, see clojure.tools.middleware/set-descriptor!" m)
+        (println)))
     (let [middlewares (set (for [m middlewares]
                              (-> (descriptor m)
                                ; only conj'ing m here to support direct reference to
@@ -131,7 +144,7 @@
 
 ; oh, kill me now
 (defn- markdown-escape
-  [^String s]                                                                           ;DM: Added type hint
+  [^String s]
   (System.Text.RegularExpressions.Regex/Replace s "([*_])" "\\\\$1"))                 ;DM: (.replaceAll s "([*_])" "\\\\$1")
 
 (defn- message-slot-markdown

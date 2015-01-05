@@ -139,11 +139,18 @@
       (case k
         (:id :ns) (assoc m k v)
         :value (update-in m [k] (fnil conj []) v)
-        (:status :session) (update-in m [k] (fnil into #{}) v)
+        :status (update-in m [k] (fnil into #{}) v)
+        :session (update-in m [k] (fnil conj #{}) v)
         (if (string? v)
           (update-in m [k] #(str % v))
           (assoc m k v))))            
     {} (apply concat responses)))
+
+(defn code*
+  "Returns a single string containing the pr-str'd representations
+   of the given expressions."
+  [& expressions]
+  (apply str (map pr-str expressions)))
 
 (defmacro code
   "Expands into a string consisting of the macro's body's forms
@@ -152,7 +159,7 @@
 
    {:op :eval, :code (code (+ 1 1) (slurp \"foo.txt\"))}"
   [& body]
-  (apply str (map pr-str body)))
+  (apply code* body))
 
 (defn read-response-value
   "Returns the provided response message, replacing its :value string with
